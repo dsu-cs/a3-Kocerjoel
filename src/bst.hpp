@@ -18,15 +18,26 @@ public:
     // Removes data from the tree
     // param: The data to be removed from the tree
     void remove(T);
+
+    Node<T> *remove_helper(Node<T> *node, T);
+
     // Performs an inorder traversal
     // returns: pointer to a vector containing the tree traversal
     std::vector<T> *inorder(void);
+
+    std::vector<T> *inorder_helper(Node<T> *node, std::vector<T> *vect);
+
     // Performs an postorder traversal
     // returns: pointer to a vector containing the tree traversal
     std::vector<T> *postorder(void);
+
+    std::vector<T> *postorder_helper(Node<T> *node, std::vector<T> *vect);
+
     // Performs an preorder traversal
     // returns: pointer to a vector containing the tree traversal
     std::vector<T> *preorder(void);
+
+    std::vector<T> *preorder_helper(Node<T> *node, std::vector<T> *vect);
     // Searches the tree for a given value
     // param: the data to search for
     // returns: a pointer to the node containing the data or NULL if the data
@@ -35,6 +46,8 @@ public:
     // Gets the current number of nodes in the tree
     // returns: the number of nodes in the tree
     int get_size(void);
+
+    int get_size_helper(Node<T> *node);
 private:
     // the root node of the tree
     Node<T> *root;
@@ -63,72 +76,91 @@ template<class T>
  std::vector<T> * BST<T>::inorder()
 {
     std::vector<T> *vec = new std::vector<T>;
-    Node<T> *cur = new Node<T>();
-    Node<T> *pre = new Node<T>();
-    int i = 0;
-    if(root == NULL)
-        return
-    
-    cur = root;
 
-    while(cur != NULL)
-    {
-        if (cur->get_left() == NULL)
-        {
-            vec[i] = cur->get_data();
-            cur = cur->get_right();
-        }
-        else
-        {
-            pre = cur->get_left();
-            while(pre->get_right() != NULL && pre->get_right() != cur)
-            {
-                pre = pre->get_right();
-            }
-
-            if(pre->right ==NULL)
-            {
-                pre->set_right(cur);
-                cur = cur->get_left();
-            }
-            else
-            {
-                pre->set_right(NULL);
-                vec[i] = cur->get_data();
-                cur = cur->get_right();
-            }
-
-        }
-        i++;
-    }
+    Node<T> *cur = root;
+        
+    vec = inorder_helper(cur, vec);
+ 
     return vec;
 }
 
+// Recursive inorder helper
+template<class T>
+ std::vector<T> * BST<T>::inorder_helper(Node<T> *node, std::vector<T> *vect)
+ {
+    if(node != NULL)
+    {
+        inorder_helper(node->get_left(), vect);
+
+        vect->push_back(node->get_data());
+
+        inorder_helper(node->get_right(), vect);
+    }  
+    return vect;
+
+ }
 
 template<class T>
  std::vector<T> * BST<T>::preorder()
 {
     std::vector<T> *vec = new std::vector<T>;
+
+    Node<T> *cur = root;
+        
+    vec = preorder_helper(cur, vec);
+
     return vec;
 }
+
+// Recursive preorder helper
+template<class T>
+ std::vector<T> * BST<T>::preorder_helper(Node<T> *node, std::vector<T> *vect)
+ {
+    if(node != NULL)
+    {
+        vect->push_back(node->get_data());
+
+        preorder_helper(node->get_left(), vect);
+
+        preorder_helper(node->get_right(), vect);
+    }
+    return vect;
+ }
 
 
 template<class T>
  std::vector<T> * BST<T>::postorder()
 {
     std::vector<T> *vec = new std::vector<T>;
+   
+    Node<T> *cur = root;
+        
+    vec = postorder_helper(cur, vec);
 
     return vec;
 }
+
+// Recursive postorder helper
+template<class T>
+ std::vector<T> * BST<T>::postorder_helper(Node<T> *node, std::vector<T> *vect)
+ {
+    if(node != NULL)
+    {
+        postorder_helper(node->get_left(), vect);
+
+        postorder_helper(node->get_right(), vect);
+
+        vect->push_back(node->get_data());
+    }
+    return vect;
+
+ }
 
 template<class T>
 void BST<T>::insert(T new_data)
 {
     Node<T> *newNode = new Node<T>(new_data);
 
-    Node<T> *temp2 = new Node<T>();
-
-    Node<T> *temp1 = root;
 
     if(root == NULL)
     {
@@ -136,31 +168,34 @@ void BST<T>::insert(T new_data)
     }
     else  
     {
-        while (temp1 != 0)
+        Node<T> *cur = root;
+        while (cur != NULL)
         {
-            temp2 = temp1;
-            if(new_data < temp1->get_data())
+            if(new_data < cur->get_data())
             {
-                temp1 = temp1->get_left();
+                if(cur->get_left() == NULL)
+                {
+                    cur->set_left(newNode);
+                    cur = NULL;
+                }
+                else
+                {
+                    cur = cur->get_left();
+                }
             }
             else
             {
-                temp1 = temp1->get_right();                
+                if(cur->get_right() == NULL)
+                {
+                    cur->set_right(newNode);
+                    cur = NULL; 
+                }
+                else
+                    cur = cur->get_right();              
             }
         }
-
-        if(new_data < temp2->get_data())
-        {
-            temp2->set_left(newNode);
-        }
-        else
-        {
-            temp2->set_right(newNode);
-        }
     }
-
-    return;
-    
+    return;    
 }
 
 
@@ -193,92 +228,84 @@ template<class T>
 void BST<T>::remove(T val)
 {
     Node<T> *par = new Node<T>();
-    Node<T> *suc = new Node<T>();
-    int sucData = 0;
+
+    int sucData;
     Node<T> *cur = root;
 
-    while(cur != NULL)
-    {   
-        if(cur->get_data() == val)
-        {
-            if(!cur->get_left() && !cur->get_right())
-            {
-                if(!par)
-                {
-                    root = NULL;
-                }
-                else if (par->get_left() == cur)
-                {
-                    par->set_left(NULL);
-                }
-                else
-                {
-                    par->set_right(NULL);
-                }
-            }
-            
-            else if(cur->get_left() && !cur->get_right())
-            {
-                if(!par)
-                {
-                    root = cur->get_left();
-                }
-                else if (par->get_left() == cur)
-                {
-                    par->set_left(cur->get_left());
-                }
-                else
-                {
-                    par->set_right(cur->get_left());
-                }
-            }
-            
-            else if(!cur->get_left() && cur->get_right())
-            {
-                if(!par)
-                {
-                    root = cur->get_right();
-                }
-                else if (par->get_left() == cur)
-                {
-                    par->set_left(cur->get_right());
-                }
-                else
-                {
-                    par->set_right(cur->get_right());
-                }
-            }            
-            else
-            {
-                suc = cur->get_right();
-                while(suc->get_left() != NULL)
-                {
-                    suc = suc->get_left();
-                }
-                //sucData = suc->get_data();
-                remove(sucData);
-                cur->set_data(sucData);
-            }
-            return;
-        }
-        else if(cur->get_data() < val)
-        {
-            par = cur;
-            cur = cur->get_right();
-        }
-        else
-        {
-            par = cur;
-            cur = cur->get_left();
-        }
-    }
+    root = remove_helper(cur, val);
+
     return;
 }
 
+// Recursive remove helper
+template<class T>
+Node<T> *BST<T>::remove_helper(Node<T> *node, T val)
+{
+    if(node == NULL)
+    {
+        return root;
+    }
+    if(val < node->get_data())
+    {
+        node->set_left(remove_helper(node->get_left(), val));
+    }
+    else if(val > node->get_data())
+    {
+        node->set_right(remove_helper(node->get_right(), val));
+    }
+    else
+    {
+        if(node->get_left() == NULL)
+        {
+            Node<T> *temp = node->get_right();
+            return temp;
+        }
+        else if(node->get_right() == NULL)
+        {
+            Node<T> *temp = node->get_left();
+            return temp;
+        }
+
+        Node<T> *suc = node->get_right();
+        while(suc && suc->get_left() != NULL)
+        {
+            suc = suc->get_left();
+        }
+        int data = suc->get_data();
+
+        node->set_data(data);
+
+        node->set_right(remove_helper(node->get_right(), data));
+
+    }
+
+    return node;
+}
 
 
 template<class T>
 int BST<T>::get_size()
 {
+    int count = 0;
+    if (root != NULL)
+    {
+        count = get_size_helper(root);
+    }
+    return count;
+}
 
+// Recursive get size helper
+template<class T>
+int BST<T>::get_size_helper(Node<T> *node)
+{
+    int count = 1;
+    if(node->get_left() != NULL)
+    {
+        count += get_size_helper(node->get_left());
+    }
+    if(node->get_right() != NULL)
+    {
+        count += get_size_helper(node->get_left());
+    }
+    return count;
 }
